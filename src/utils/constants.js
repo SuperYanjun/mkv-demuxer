@@ -1,0 +1,21 @@
+export const MAIN_ElEMENT_ID = {
+  EBML_HEADER: 0x1a45dfa3,
+  SEGMENT: 0x18538067,
+  SEEK_HEAD: 0x114d9b74,
+  INFO: 0x1549a966,
+  TRACKS: 0x1654ae6b,
+  CUES: 0x1c53bb6b,
+  CLUSTER: 0x1f43b675,
+  VOID: 0xec,
+};
+
+export const MAIN_ElEMENT_ID_STRING = {
+  EBML_HEADER: "0x1a45dfa3",
+  SEGMENT: "0x18538067",
+  SEEK_HEAD: "0x114d9b74",
+  INFO: "0x1549a966",
+  TRACKS: "0x1654ae6b",
+  CUES: "0x1c53bb6b",
+  CLUSTER: "0x1f43b675",
+  VOID: "0xec",
+};
