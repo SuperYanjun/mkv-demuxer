@@ -1,6 +1,6 @@
 {
   "name": "mkv-demuxer",
-  "version": "0.0.1-beta.0",
+  "version": "0.0.1-beta.1",
   "author": "wangyanjun",
   "description": "A javascript library for parsing matroska files",
   "keywords": [
