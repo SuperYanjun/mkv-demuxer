@@ -6,7 +6,7 @@ module.exports = {
   output: {
     library: 'MkvDemuxer',
     // libraryTarget: 'window',
-    libraryTarget: 'commonjs2',
+    libraryTarget: 'umd2',
     path: path.resolve(__dirname, 'dist'),
     filename: 'MkvDemuxer.js'
   }

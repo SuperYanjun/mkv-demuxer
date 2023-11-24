@@ -111,13 +111,12 @@ class MkvDemuxer {
     this.filePieceSize = 1 * 1024 * 1024;
   }
 
-  async initFile(file, fileSize, filePieceSize) {
+  async initFile(file, filePieceSize) {
     if (this.file) {
       this.reset();
     }
     this.file = file;
-    // ******
-    this.fileSize = fileSize;
+    this.fileSize = file.size;
     this.filePieceSize = filePieceSize;
     await this.dataInterface.recieveInput();
   }
