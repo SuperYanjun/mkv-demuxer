@@ -177,6 +177,42 @@ class Cluster {
     this.tempElementHeader.reset();
     return frame;
   }
+  async loadBlocks() {
+    const blocks = [];
+    while (this.dataInterface.offset < this.end) {
+      if (!this.tempElementHeader.status) {
+        await this.dataInterface.peekAndSetElement(this.tempElementHeader);
+        if (!this.tempElementHeader.status) return;
+      }
+      switch (this.tempElementHeader.id) {
+        case 0xa3: // Simple Block
+          if (!this.tempBlock.status)
+            this.tempBlock.init(
+              this.tempElementHeader.offset,
+              this.tempElementHeader.size,
+              this.tempElementHeader.end,
+              this.tempElementHeader.dataOffset,
+              this.dataInterface,
+              this
+            );
+          const frame = await this.tempBlock.load(false);
+          if (!this.tempBlock.loaded) return null;
+          blocks.push(frame);
+          this.tempBlock.reset();
+          break;
+        default:
+          const skipped = await this.dataInterface.skipBytes(
+            this.tempElementHeader.size
+          );
+          if (skipped === false) {
+            return null;
+          }
+          break;
+      }
+      this.tempElementHeader.reset();
+    }
+    return blocks;
+  }
 }
 
 module.exports = Cluster;

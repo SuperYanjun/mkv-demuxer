@@ -5,7 +5,7 @@ const Tracks = require("./Tracks");
 const Cluster = require("./Cluster");
 const Cues = require("./Cues");
 const ElementHeader = require("./ElementHeader");
-const { findClosestNumber } = require("./utils/tools");
+const { findClosestNumber, findNumber } = require("./utils/tools");
 const {
   MAIN_ElEMENT_ID,
   MAIN_ElEMENT_ID_STRING,
@@ -186,16 +186,22 @@ class MkvDemuxer {
       cues.map((each) => each.cueTime),
       milliTime
     );
+    const exactTime = cues[closestIndex]?.cueTime / 1000 || 0;
     const clusterRelativePosition =
-      cues[closestIndex].cueTrackPositions.cueClusterPosition;
+      cues[closestIndex].cueTrackPositions?.cueClusterPosition || 0;
     const blockRelativePosition =
-      cues[closestIndex].cueTrackPositions.cueRelativePosition;
-    if (!clusterRelativePosition || !blockRelativePosition) {
+      cues[closestIndex].cueTrackPositions?.cueRelativePosition || 0;
+    if (!clusterRelativePosition) {
       return null;
     }
     await this._jumpToSegmentOffset(clusterRelativePosition);
-    const frame =
-      (await this._loadClustersBlock(blockRelativePosition)) || null;
+    const blocks = (await this._loadClustersBlock(blockRelativePosition)) || [];
+    const frameIndex =
+      findNumber(
+        blocks.map((each) => each.timestamp),
+        exactTime
+      ) || -1;
+    const frame = blocks?.[frameIndex] || null;
     return frame;
   }
 
@@ -419,7 +425,7 @@ class MkvDemuxer {
           }
         }
       }
-      console.log('load cluster')
+      console.log("load cluster");
       switch (this.currentElementHeader.id) {
         case MAIN_ElEMENT_ID.CLUSTER:
           const ret = await this._parseCluster();
@@ -443,7 +449,7 @@ class MkvDemuxer {
 
   async _loadClustersBlock(relativePosition) {
     const name = "loadClustersBlock";
-    let frame = null;
+    let blocks = [];
     if (!this.currentElementHeader.status) {
       await this.dataInterface.peekAndSetElement(this.currentElementHeader);
       if (!this.currentElementHeader.status) {
@@ -461,12 +467,20 @@ class MkvDemuxer {
         this
       );
     }
-    await this.currentCluster.loadTimeCode();
-    const blockPosition = this.currentCluster.dataOffset + relativePosition;
-    await this._jumpToFileOffset(blockPosition);
-    frame = await this.currentCluster.loadBlock();
+    if (relativePosition) {
+      await this.currentCluster.loadTimeCode();
+      const blockPosition = this.currentCluster.dataOffset + relativePosition;
+      await this._jumpToFileOffset(blockPosition);
+      blocks = [await this.currentCluster.loadBlock()];
+    } else {
+      await this.currentCluster.loadTimeCode();
+      blocks = await this.currentCluster.loadBlocks();
+      blocks.sort((a, b) => {
+        return a.timestamp - b.timestamp;
+      });
+    }
     this.currentElementHeader.reset();
-    return frame;
+    return blocks;
   }
 
   async _parseSeekHead() {

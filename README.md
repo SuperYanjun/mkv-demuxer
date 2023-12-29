@@ -6,24 +6,24 @@
 - Get all frames of a video
 - Get a certain frame at a given timestamp of a video
 
-### Installation
+## Installation
 
 ```shell
 npm install mkv-demuxer -S
 ```
 
-### Usage
+## Usage
 
-#### Constructor
+### Constructor
 
 ```javascript
 import MkvDemuxer from 'mkv-demuxer'
 const demuxer = new MkvDemuxer()
 ```
 
-#### API
+### API
 
-##### initFile(file, filePieceSize)
+#### initFile(file, filePieceSize)
 
 Params:  `file, filePieceSize `
 
@@ -35,7 +35,7 @@ const filePieceSize = 1 * 1024 * 1024
 await demuxer.initFile(file, filePieceSize)
 ```
 
-##### getMeta()
+#### getMeta()
 
 Returns: `Promise<meta>`
 
@@ -65,7 +65,7 @@ Returns: `Promise<meta>`
 const meta = await demuxer.getMeta()
 ```
 
-##### getData()
+#### getData()
 
 To get all frames of a video.
 
@@ -97,7 +97,7 @@ Returns: `Promise<data>`
 const data = await demuxer.getData()
 ```
 
-##### seekFrame(timestamp)
+#### seekFrame(timestamp)
 
 Params: `timestamp`
 
@@ -117,7 +117,11 @@ Returns: `Promise<frame>`
 const frame = await demuxer.seekFrame(10)
 ```
 
-### Example
+#### reset()
+
+To reset the demuxer.
+
+## Example
 
 ```javascript
 import MkvDemuxer from 'mkv-demuxer'
@@ -129,6 +133,6 @@ const data = await demuxer.getData()
 const frame = await demuxer.seekFrame(10)
 ```
 
-### Additional notes
+## Additional notes
 
 This library is based on [jswebm](https://github.com/jscodec/jswebm) and has made a series of optimizations. It solves the memory problem, optimizes exception handling, and provides several useful APIs.
