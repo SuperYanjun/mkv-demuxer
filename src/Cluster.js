@@ -149,7 +149,7 @@ class Cluster {
             this.dataInterface,
             this
           );
-        frame = await this.tempBlock.load(false);
+        frame = await this.tempBlock.load(false, ["video"]);
         if (!this.tempBlock.loaded) return null;
         this.tempBlock.reset();
         break;
@@ -195,9 +195,9 @@ class Cluster {
               this.dataInterface,
               this
             );
-          const frame = await this.tempBlock.load(false);
+          const frame = await this.tempBlock.load(false, ["video"]);
           if (!this.tempBlock.loaded) return null;
-          blocks.push(frame);
+          if (frame) blocks.push(frame);
           this.tempBlock.reset();
           break;
         default:

@@ -197,7 +197,7 @@ class MkvDemuxer {
     await this._jumpToSegmentOffset(clusterRelativePosition);
     const blocks = (await this._loadClustersBlock(blockRelativePosition)) || [];
     let frameIndex = findNumber(
-      blocks.map((each) => each.timestamp),
+      blocks.map((each) => each?.timestamp || 0),
       exactTime
     );
     frameIndex = frameIndex >= 0 ? frameIndex : -1;

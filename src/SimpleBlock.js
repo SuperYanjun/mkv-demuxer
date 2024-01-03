@@ -82,7 +82,7 @@ class SimpleBlock {
     this.track = this.trackEntries[this.trackNumber - 1];
   }
 
-  async load(addBlockToPackets) {
+  async load(addBlockToPackets, blockTypes = ["video", "audio"]) {
     const dataInterface = this.dataInterface;
     let blockData;
     if (this.loaded) {
@@ -148,7 +148,7 @@ class SimpleBlock {
           return;
         }
         for (let i = 0; i < this.lacedFrameCount; i++) {
-          if (this.track.trackType === 1) {
+          if (this.track.trackType === 1 && blockTypes.includes("video")) {
             let packet = {
               start: startPosition,
               end: endPosition,
@@ -162,7 +162,10 @@ class SimpleBlock {
             } else {
               blockData = packet;
             }
-          } else if (this.track.trackType === 2) {
+          } else if (
+            this.track.trackType === 2 &&
+            blockTypes.includes("audio")
+          ) {
             let packet = {
               start: startPosition,
               end: endPosition,
@@ -239,7 +242,7 @@ class SimpleBlock {
         let start = 0;
         let end = this.ebmlParsedSizes[0];
         for (let i = 0; i < this.lacedFrameCount; i++) {
-          if (this.track.trackType === 1) {
+          if (this.track.trackType === 1 && blockTypes.includes("video")) {
             let packet = {
               start: startPosition,
               end: endPosition,
@@ -253,7 +256,10 @@ class SimpleBlock {
             } else {
               blockData = packet;
             }
-          } else if (this.track.trackType === 2) {
+          } else if (
+            this.track.trackType === 2 &&
+            blockTypes.includes("audio")
+          ) {
             let packet = {
               start: startPosition,
               end: endPosition,
@@ -311,7 +317,7 @@ class SimpleBlock {
           console.warn("INVALID TIMESTAMP");
           return;
         }
-        if (this.track.trackType === 1) {
+        if (this.track.trackType === 1 && blockTypes.includes("video")) {
           let packet = {
             start: startPosition,
             end: endPosition,
@@ -325,7 +331,7 @@ class SimpleBlock {
           } else {
             blockData = packet;
           }
-        } else if (this.track.trackType === 2) {
+        } else if (this.track.trackType === 2 && blockTypes.includes("audio")) {
           let packet = {
             start: startPosition,
             end: endPosition,
