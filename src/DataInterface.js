@@ -338,21 +338,21 @@ class DataInterface {
     if (size <= 0 || size > 8) {
       console.warn("invalid file size");
     }
-    if (this.tempResult === null) this.tempResult = 0;
+    if (this.tempResult === null) this.tempResult = BigInt(0);
     if (this.tempCounter === INITIAL_COUNTER) this.tempCounter = 0;
     let b;
     while (this.tempCounter < size) {
       if (!this.currentBuffer) return null;
-      b = await this.readByte();
+      b = BigInt(await this.readByte());
       if (this.tempCounter === 0 && b < 0) {
         console.warn("invalid integer value");
       }
-      this.tempResult <<= 8;
+      this.tempResult <<= BigInt(8);
       this.tempResult |= b;
       await this.popBuffer();
       this.tempCounter++;
     }
-    let result = this.tempResult;
+    let result = Number(this.tempResult);
     this.tempResult = null;
     this.tempCounter = INITIAL_COUNTER;
     return result;
@@ -366,19 +366,22 @@ class DataInterface {
     if (size <= 0 || size > 8) {
       console.warn("invalid file size");
     }
-    if (this.tempResult === null) this.tempResult = 0;
+    if (this.tempResult === null) this.tempResult = BigInt(0);
     if (this.tempCounter === INITIAL_COUNTER) this.tempCounter = 0;
     let b;
     while (this.tempCounter < size) {
       if (!this.currentBuffer) return null;
-      if (this.tempCounter === 0) b = await this.readByte();
-      else b = await this.readSignedByte();
-      this.tempResult <<= 8;
+      if (this.tempCounter === 0) {
+        b = BigInt(await this.readByte());
+      } else {
+        b = BigInt(await this.readSignedByte());
+      }
+      this.tempResult <<= BigInt(8);
       this.tempResult |= b;
       await this.popBuffer();
       this.tempCounter++;
     }
-    let result = this.tempResult;
+    let result = Number(this.tempResult);
     this.tempResult = null;
     this.tempCounter = INITIAL_COUNTER;
     return result;
