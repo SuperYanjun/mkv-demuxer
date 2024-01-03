@@ -102,7 +102,7 @@ class Cluster {
   }
 
   async loadTimeCode() {
-    while (this.dataInterface.offset < this.end && !this.timeCode) {
+    while (this.dataInterface.offset < this.end && this.timeCode == null) {
       if (!this.tempElementHeader.status) {
         await this.dataInterface.peekAndSetElement(this.tempElementHeader);
         if (!this.tempElementHeader.status) return;
