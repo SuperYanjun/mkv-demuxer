@@ -128,18 +128,15 @@ class MkvDemuxer {
     if (!this.isEBMLInfoLoaded) {
       await this._loadInfo();
     }
-    console.log("info loaded");
     if (!this.isEBMLTracksLoaded) {
       await this._loadTracks();
     }
-    console.log("tracks loaded");
     this.isMetaLoaded = true;
     const meta = {
       info: this.info,
       audio: this.audioTrack,
       video: this.videoTrack,
     };
-    console.log("meta loaded", meta);
     return meta;
   }
 
@@ -150,18 +147,15 @@ class MkvDemuxer {
     if (!this.isEBMLCuesLoaded) {
       await this._loadCues();
     }
-    console.log("cues loaded");
     if (!this.isEBMLClustersLoaded) {
       await this._loadClusters();
     }
-    console.log("clusters loaded");
     this.isDataLoaded = true;
     const data = {
       cues: this.cues,
       videoPackets: this.videoPackets,
       audioPackets: this.audioPackets,
     };
-    console.log("data loaded", data);
     return data;
   }
 
@@ -172,9 +166,7 @@ class MkvDemuxer {
     if (!this.isEBMLCuesLoaded) {
       await this._loadCues();
     }
-    console.log("cues loaded");
     const frame = await this._seek(timestamp);
-    console.log("seek frame", timestamp, frame);
     return frame;
   }
 
@@ -207,11 +199,8 @@ class MkvDemuxer {
 
   async _loadBasicElements() {
     await this._loadEBML(true);
-    console.log("ebml loaded");
     await this._loadSeekHead();
-    console.log("seekhead loaded");
     this.isBasicElementsLoaded = true;
-    console.log("basic loaded");
   }
 
   async _loadEBML(skipHeader = false) {
@@ -425,7 +414,6 @@ class MkvDemuxer {
           }
         }
       }
-      console.log("load cluster");
       switch (this.currentElementHeader.id) {
         case MAIN_ElEMENT_ID.CLUSTER:
           const ret = await this._parseCluster();

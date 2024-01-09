@@ -1,4 +1,4 @@
-export const MAIN_ElEMENT_ID = {
+const MAIN_ElEMENT_ID = {
   EBML_HEADER: 0x1a45dfa3,
   SEGMENT: 0x18538067,
   SEEK_HEAD: 0x114d9b74,
@@ -9,7 +9,7 @@ export const MAIN_ElEMENT_ID = {
   VOID: 0xec,
 };
 
-export const MAIN_ElEMENT_ID_STRING = {
+const MAIN_ElEMENT_ID_STRING = {
   EBML_HEADER: "0x1a45dfa3",
   SEGMENT: "0x18538067",
   SEEK_HEAD: "0x114d9b74",
@@ -19,3 +19,5 @@ export const MAIN_ElEMENT_ID_STRING = {
   CLUSTER: "0x1f43b675",
   VOID: "0xec",
 };
+
+module.exports = { MAIN_ElEMENT_ID, MAIN_ElEMENT_ID_STRING };

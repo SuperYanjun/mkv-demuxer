@@ -1,4 +1,4 @@
-export function findClosestNumber(arr, target) {
+function findClosestNumber(arr, target) {
   let mid;
   let l = 0;
   let r = arr.length - 1;
@@ -12,7 +12,7 @@ export function findClosestNumber(arr, target) {
   }
   return Math.abs(target - arr[l]) <= Math.abs(target - arr[r]) ? l : r;
 }
-export function findNumber(arr, target) {
+function findNumber(arr, target) {
   let mid;
   var l = 0;
   var r = arr.length - 1;
@@ -28,3 +28,5 @@ export function findNumber(arr, target) {
   }
   return -1;
 }
+
+module.exports = { findClosestNumber, findNumber };
