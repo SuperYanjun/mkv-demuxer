@@ -1,4 +1,4 @@
-class ElementHeader {
+class EBMLElement {
   constructor(id, size, offset, dataOffset) {
     this.id = id;
     this.size = size;
@@ -32,4 +32,4 @@ class ElementHeader {
   }
 }
 
-module.exports = ElementHeader;
+module.exports = EBMLElement;

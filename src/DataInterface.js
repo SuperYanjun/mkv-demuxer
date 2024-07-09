@@ -1,31 +1,10 @@
 const INITIAL_COUNTER = -1;
-const ElementHeader = require("./ElementHeader");
-
+const EBMLElement = require("./EBMLElement");
+const { DATA_TYPE } = require("./constants/common");
 class DataInterface {
   constructor(demuxer) {
     this.demuxer = demuxer;
-    this.overallPointer = 0;
-    this.internalPointer = 0;
-    this.currentBuffer = null;
-    this.dataBufferOffsets = [];
-    this.tempFloat64 = new DataView(new ArrayBuffer(8));
-    this.tempFloat32 = new DataView(new ArrayBuffer(4));
-    this.tempBinaryBuffer = null;
-
-    this.tempElementOffset = null;
-    this.tempElementDataOffset = null;
-    this.tempSize = null;
-    this.tempOctetWidth = null;
-    this.tempOctet = null;
-    this.tempByteBuffer = 0;
-    this.tempByteCounter = 0;
-    this.tempElementId = null;
-    this.tempElementSize = null;
-    this.tempVintWidth = null;
-    this.tempResult = null;
-    this.tempCounter = INITIAL_COUNTER;
-    this.usingBufferedRead = false;
-
+    this.reset();
     Object.defineProperty(this, "offset", {
       get: function () {
         return this.overallPointer;
@@ -35,9 +14,7 @@ class DataInterface {
         this.overallPointer = offset;
       },
     });
-    /**
-     * Returns the bytes left in the current buffer
-     */
+
     Object.defineProperty(this, "remainingBytes", {
       get: function () {
         if (!this.currentBuffer) return 0;
@@ -45,8 +22,7 @@ class DataInterface {
       },
     });
   }
-
-  flush() {
+  reset() {
     this.overallPointer = 0;
     this.internalPointer = 0;
     this.currentBuffer = null;
@@ -70,7 +46,7 @@ class DataInterface {
     this.usingBufferedRead = false;
   }
 
-  async recieveInput() {
+  async receiveInput() {
     this.filePieceSize = this.demuxer.filePieceSize;
     let filePiece;
     if (this.demuxer.currentFileOffset < this.demuxer.fileSize) {
@@ -105,7 +81,7 @@ class DataInterface {
           .arrayBuffer();
         this.currentBuffer = new DataView(filePiece);
       } else if (this.offset < this.demuxer.fileSize) {
-        await this.recieveInput();
+        await this.receiveInput();
         await this.popBuffer();
       } else {
         this.currentBuffer = null;
@@ -116,15 +92,45 @@ class DataInterface {
 
   async jumpToPosition(position) {
     this.demuxer.currentFileOffset = 0;
-    this.flush();
+    this.reset();
     this.demuxer.currentFileOffset = position;
     this.overallPointer = position;
-    await this.recieveInput();
+    await this.receiveInput();
     await this.popBuffer();
   }
 
+  // async  readUtf8(size) {
+  //   if (!this.currentBuffer) {
+  //     return null;
+  //   }
+  //   const byteToRead = this.currentBuffer.toString('utf8')
+  //   await this.incrementPointers(size);
+  //   return byteToRead;
+  // }
+
+//   async readDate(size) {
+//     if (!this.currentBuffer) {
+//       return null;
+//     }
+//     // const byteToRead = this.currentBuffer.toString('utf8')
+// console.log('debug',this.currentBuffer)
+//     // const b = new DataView(buff.buffer, buff.byteOffset, buff.byteLength);
+//     switch (this.currentBuffer.byteLength) {
+//       case 1:
+//         return new Date(b.getUint8(0));
+//       case 2:
+//         return new Date(b.getUint16(0));
+//       case 4:
+//         return new Date(b.getUint32(0));
+//       case 8:
+//         return new Date(Number.parseInt(Tools.readHexString(buff), 16));
+//       default:
+//         return new Date(0);
+//     }
+//   }
+
   async readDate(size) {
-    return await this.readSignedInt(size);
+    return await this.readUnsignedInt(size);
   }
 
   async readId() {
@@ -240,7 +246,7 @@ class DataInterface {
       this.tempElementSize = await this.readVint();
       if (this.tempElementSize === null) return null;
     }
-    const element = new ElementHeader(
+    const element = new EBMLElement(
       this.tempElementId,
       this.tempElementSize,
       this.tempElementOffset,
@@ -275,21 +281,6 @@ class DataInterface {
     this.tempElementOffset = null;
   }
 
-  /*
-   * Check if we have enough bytes available in the buffer to read
-   * @param {number} n test if we have this many bytes available to read
-   * @returns {boolean} has enough bytes to read
-   */
-  peekBytes(n) {
-    if (this.remainingBytes - n >= 0) return true;
-    return false;
-  }
-
-  /**
-   * Skips set amount of bytes
-   * TODO: Make this more efficient with skipping over different buffers, add stricter checking
-   * @param {number} bytesToSkip
-   */
   async skipBytes(bytesToSkip) {
     let chunkToErase = 0;
     if (this.tempCounter === INITIAL_COUNTER) this.tempCounter = 0;
@@ -329,7 +320,31 @@ class DataInterface {
     this.overallPointer += bytesToAdd;
     await this.popBuffer();
   }
-
+  async readAs(type, size) {
+    let res = null;
+    switch (type) {
+      case DATA_TYPE.UNSIGNED_INT:
+        res = await this.readUnsignedInt(size);
+        break;
+      case DATA_TYPE.SIGNED_INT:
+        res = await this.readSignedInt(size);
+        break;
+      case DATA_TYPE.UTF8:
+        case DATA_TYPE.STRING:
+        res = await this.readString(size);
+        break;
+      case DATA_TYPE.FLOAT:
+        res = await this.readFloat(size);
+        break;
+      case DATA_TYPE.DATE:
+        res = await this.readDate(size);
+        break;
+      case DATA_TYPE.BINARY:
+        res = await this.getBinary(size);
+        break;
+    }
+    return res;
+  }
   async readUnsignedInt(size) {
     if (!this.currentBuffer) {
       return null;
@@ -448,11 +463,6 @@ class DataInterface {
     return result;
   }
 
-  /**
-   * Returns a new buffer with the length of data starting at the current byte buffer
-   * @param {number} length Length of bytes to read
-   * @returns {ArrayBuffer} the read data
-   */
   async getBinary(length) {
     if (!this.currentBuffer) {
       return null;

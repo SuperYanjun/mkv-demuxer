@@ -1,4 +1,4 @@
-const ElementHeader = require("./ElementHeader");
+const EBMLElement = require("./EBMLElement");
 const SimpleBlock = require("./SimpleBlock");
 const BlockGroup = require("./BlockGroup");
 
@@ -15,7 +15,7 @@ class Cluster {
     this.timeCode = null;
     this.tempBlock = null;
     this.position = null;
-    this.tempElementHeader = new ElementHeader(-1, -1, -1, -1);
+    this.tempElementHeader = new EBMLElement(-1, -1, -1, -1);
     this.tempElementHeader.reset();
     this.tempBlock = new SimpleBlock();
     this.blockGroups = [];
