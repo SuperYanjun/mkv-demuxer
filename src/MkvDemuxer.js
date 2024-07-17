@@ -7,6 +7,7 @@ const Tracks = require("./Tracks");
 const Cluster = require("./Cluster");
 const Cues = require("./Cues");
 const { findClosestNumber, findNumber } = require("./utils/tools");
+require('./parse.js')
 const {
   MAIN_ELEMENT_NAME,
   MAIN_ELEMENT_ID,
