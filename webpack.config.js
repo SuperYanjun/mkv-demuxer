@@ -2,13 +2,14 @@ const path = require("path");
 
 module.exports = {
   entry: "./src/MkvDemuxer.js",
-  mode: "production",
+  mode: "development",
   output: {
     library: "MkvDemuxer",
     libraryTarget: "umd2",
     path: path.resolve(__dirname, "dist"),
     filename: "MkvDemuxer.js",
   },
+  devtool: "source-map",
   module: {
     rules: [
       {

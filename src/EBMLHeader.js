@@ -1,12 +1,9 @@
-const { EBML_HEADER_ElEMENT_INFO } = require("./constants/EBMLHeader");
+const { EBML_HEADER_ELEMENT_INFO } = require("./constants/EBMLHeader");
+const Element = require("./Element");
 
-class EBMLHeader {
+class EBMLHeader extends Element {
   constructor(element, dataInterface) {
-    this.dataInterface = dataInterface;
-    this.size = element.size;
-    this.offset = element.offset;
-    this.end = element.end;
-    this.loaded = false;
+    super(element, dataInterface);
 
     this.EBMLVersion = null;
     this.EBMLReadVersion = null;
@@ -18,28 +15,7 @@ class EBMLHeader {
   }
 
   async load() {
-    let currentElement = null;
-    while (this.dataInterface.offset < this.end) {
-      if (!currentElement) {
-        currentElement = await this.dataInterface.peekElement();
-        if (currentElement === null) return;
-      }
-      const elementInfo = EBML_HEADER_ElEMENT_INFO[currentElement.id];
-      if (elementInfo) {
-        const data = await this.dataInterface.readAs(
-          elementInfo.type,
-          currentElement.size
-        );
-        this[elementInfo.name] = data || null;
-      } else {
-        const skipped = await this.dataInterface.skipBytes(currentElement.size);
-        if (skipped === false) {
-          return;
-        }
-      }
-      currentElement = null;
-    }
-    this.loaded = true;
+    await super.load(EBML_HEADER_ELEMENT_INFO);
   }
   getData() {
     return {

@@ -1,52 +1,23 @@
 const {
-  SEEK_HEAD_ElEMENT_NAME,
-  SEEK_HEAD_ElEMENT_INFO,
+  SEEK_HEAD_ELEMENT_NAME,
+  SEEK_HEAD_ELEMENT_INFO,
 } = require("./constants/SeekHead");
 const Seek = require("./Seek");
-class SeekHead {
-  constructor(seekHeadHeader, dataInterface) {
-    this.dataInterface = dataInterface;
-    this.size = seekHeadHeader.size;
-    this.offset = seekHeadHeader.offset;
-    this.end = seekHeadHeader.end;
-    this.loaded = false;
+const Element = require("./Element");
+class SeekHead extends Element {
+  constructor(element, dataInterface) {
+    super(element, dataInterface);
 
     this.seekEntries = [];
   }
 
   async load() {
-    let currentElement = null;
-    while (this.dataInterface.offset < this.end) {
-      if (!currentElement) {
-        currentElement = await this.dataInterface.peekElement();
-        if (currentElement === null) return;
-      }
-      const elementInfo = SEEK_HEAD_ElEMENT_INFO[currentElement.id];
-      if (elementInfo) {
-        const isMaster = elementInfo.type === "MASTER";
-        if (isMaster) {
-          await this.loadMasterElement(elementInfo.name, currentElement);
-        } else {
-          const data = await this.dataInterface.readAs(
-            elementInfo.type,
-            currentElement.size
-          );
-          this[elementInfo.name] = data || null;
-        }
-      } else {
-        const skipped = await this.dataInterface.skipBytes(currentElement.size);
-        if (skipped === false) {
-          return;
-        }
-      }
-      currentElement = null;
-    }
-    this.loaded = true;
+    await super.load(SEEK_HEAD_ELEMENT_INFO);
   }
 
   async loadMasterElement(name, currentElement) {
     switch (name) {
-      case SEEK_HEAD_ElEMENT_NAME.SEEK:
+      case SEEK_HEAD_ELEMENT_NAME.SEEK:
         const seek = new Seek(currentElement, this.dataInterface);
         await seek.load();
         if (!seek.loaded) {

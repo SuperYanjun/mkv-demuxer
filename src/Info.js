@@ -1,11 +1,8 @@
-const { INFO_ElEMENT_NAME, INFO_ElEMENT_INFO } = require("./constants/Info");
-class Info {
+const { INFO_ELEMENT_INFO,INFO_ELEMENT_NAME, CHAPTER_TRANSLATE_ELEMENT_INFO } = require("./constants/Info");
+const Element = require("./Element");
+class Info extends Element {
   constructor(element, dataInterface) {
-    this.dataInterface = dataInterface;
-    this.size = element.size;
-    this.offset = element.offset;
-    this.end = element.end;
-    this.loaded = false;
+    super(element, dataInterface);
 
     this.segmentUUID = null;
     this.segmentFilename = null;
@@ -24,37 +21,19 @@ class Info {
   }
 
   async load() {
-    let currentElement = null;
-    while (this.dataInterface.offset < this.end) {
-      if (!currentElement) {
-        currentElement = await this.dataInterface.peekElement();
-        if (currentElement === null) return;
-      }
-      const elementInfo = INFO_ElEMENT_INFO[currentElement.id];
-      if (elementInfo) {
-        const isMaster = elementInfo.type === "MASTER";
-        if (isMaster) {
-          this.loadMasterElement(elementInfo.name, currentElement);
-        } else {
-          const data = await this.dataInterface.readAs(
-            elementInfo.type,
-            currentElement.size
-          );
-          this[elementInfo.name] = data || null;
-        }
-      } else {
-        const skipped = await this.dataInterface.skipBytes(currentElement.size);
-        if (skipped === false) {
-          return;
-        }
-      }
-      currentElement = null;
-    }
-    this.loaded = true;
+    await super.load(INFO_ELEMENT_INFO);
   }
 
   async loadMasterElement(name, currentElement) {
     switch (name) {
+      // case INFO_ELEMENT_NAME.CHAPTER_TRANSLATE:
+      //   const chapterTranslate = new Seek(currentElement, this.dataInterface);
+      //   await chapterTranslate.load();
+      //   if (!chapterTranslate.loaded) {
+      //     return;
+      //   }
+      //   this.chapterTranslate = chapterTranslate.getData();
+      //   break;
       default:
         const skipped = await this.dataInterface.skipBytes(currentElement.size);
         if (skipped === false) {
