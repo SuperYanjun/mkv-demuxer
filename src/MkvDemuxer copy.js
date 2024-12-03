@@ -8,7 +8,6 @@ const Cluster = require("./Cluster");
 const Cues = require("./Cues");
 const { findClosestNumber, findNumber } = require("./utils/tools");
 const EBMLSchema = require("./EBMLSchema.js");
-const Element = require("./Element");
 const {
   MAIN_ELEMENT_NAME,
   MAIN_ELEMENT_ID,
@@ -23,7 +22,7 @@ class MkvDemuxer {
         "https://raw.githubusercontent.com/ietf-wg-cellar/matroska-specification/master/ebml_matroska.xml",
       demuxer: this,
     });
-    this.EBMLSchema.init();
+    this.EBMLSchema.init()
     this.dataInterface = new DataInterface(this);
     this.currentEBMLElement = new EBMLElement(-1, -1, -1, -1);
     this.currentEBMLElement.reset();
@@ -38,12 +37,8 @@ class MkvDemuxer {
   }
 
   resetProperties() {
-    this.EBML = null;
-    this.data = {
-      // EBML: {},
-      // Segment: {}
-    };
-    this.element = {};
+    this.EBMLSchema = {};
+    this.EBMLHeader = null;
     this.segment = null;
     this.seekHead = null;
     this.info = null;
@@ -81,7 +76,7 @@ class MkvDemuxer {
     this.isEBMLInfoLoaded = false;
     this.isEBMLTracksLoaded = false;
     this.isEBMLCuesLoaded = false;
-    this.isEBMLClusterLoaded = false;
+    this.isEBMLClustersLoaded = false;
     this.isEBMLTagsLoaded = false;
     this.isEBMLAttachmentsLoaded = false;
     this.isEBMLChaptersLoaded = false;
@@ -190,17 +185,14 @@ class MkvDemuxer {
     if (!this.isEBMLHeaderLoaded) {
       await this._loadEBMLHeader();
     }
-    console.log(this.data);
-
-    return this.EBML;
+    return this.EBMLHeader?.getData() || null;
   }
 
   async getSeekHead() {
     if (!this.isEBMLSeekHeadLoaded) {
       await this._loadSeekHead();
     }
-    console.log(this);
-    return this.seekHead;
+    return this.seekHead?.getData() || null;
   }
 
   async getInfo() {
@@ -216,18 +208,7 @@ class MkvDemuxer {
     }
     return this.tracks?.getData() || null;
   }
-  async getCues() {
-    if (!this.isEBMLCuesLoaded) {
-      await this._loadCues();
-    }
-    return this.cues?.getData() || null;
-  }
-  async getCluster() {
-    if (!this.isEBMLClusterLoaded) {
-      await this._loadCluster();
-    } 
-    return this.clusters?.getData() || null;
-    }
+
   async _loadEBMLHeader() {
     const name = "loadEBMLHeader";
     if (this.isEBMLHeaderLoaded) return;
@@ -289,60 +270,12 @@ class MkvDemuxer {
     }
   }
 
-  async _loadCues() {
-    const name = "loadCues";
-    if (this.isEBMLCuesLoaded) return;
-    this.isEBMLCuesLoaded = true;
-    const position = this.elementPositions[MAIN_ELEMENT_NAME.CUES] || 0;
-    await this._jumpToSegmentOffset(position);
-    const element = await this._getElement(MAIN_ELEMENT_NAME.CUES);
-    this.elementPositions[MAIN_ELEMENT_NAME.CUES] =
-      this.elementPositions[MAIN_ELEMENT_NAME.CUES] ?? element.offset >>> 0;
-    const ret = await this._parseCues(element);
-    if (!ret) {
-      this._handleError(ERROR_TYPE.PARSE_CUES_ERROR, name);
-    }
-  }
-  async _loadCluster() {
-    const name = "loadCluster";
-    if (this.isEBMLClusterLoaded) return;
-    this.isEBMLClusterLoaded = true;
-    this.data.Segment.Cluster = []
-    // const position = this.elementPositions[MAIN_ELEMENT_NAME.CLUSTER] || 0;
-    await this._jumpToSegmentOffset(0);
-    while (this.dataInterface.offset < this.fileSize) {
-      const EBMLElement = await this.dataInterface.peekElement();
-      if (!EBMLElement.status) {
-        this._handleError(ERROR_TYPE.PICK_ELEMENT_ERROR, name);
-      }
-      switch (EBMLElement.id) {
-        case MAIN_ELEMENT_ID.CLUSTER:
-          const ret = await this._parseCluster(EBMLElement);
-          console.log('id',EBMLElement.id, EBMLElement.id.toString(16))
-          if (!ret) {
-              this._handleError(ERROR_TYPE.PARSE_CLUSTER_ERROR, name);
-          }
-          break;
-        default:
-          const skipped = await this.dataInterface.skipBytes(EBMLElement.size);
-          if (skipped === false) {
-            this._handleError(ERROR_TYPE.SKIP_BYTE_ERROR, name);
-          }
-          break;
-      }
-    }
-    // const element = await this._getElement(MAIN_ELEMENT_NAME.CLUSTER);
-    // this.elementPositions[MAIN_ELEMENT_NAME.CLUSTER] =
-    //   this.elementPositions[MAIN_ELEMENT_NAME.CLUSTER] ?? element.offset >>> 0;
-    
-  }
-
   async _parseEBMLHeader(element) {
-    if (!this.EBML) {
-      this.EBML = new Element(element.getData(), this.dataInterface, this);
+    if (!this.EBMLHeader) {
+      this.EBMLHeader = new EBMLHeader(element.getData(), this.dataInterface);
     }
-    await this.EBML.load2(this.EBMLSchema.EBML);
-    if (!this.EBML.loaded) return false;
+    await this.EBMLHeader.load();
+    if (!this.EBMLHeader.loaded) return false;
     return true;
   }
 
@@ -357,37 +290,19 @@ class MkvDemuxer {
 
   async _parseINFO(element) {
     if (!this.info) {
-      this.info = new Element(element.getData(), this.dataInterface, this);
+      this.info = new Info(element.getData(), this.dataInterface);
     }
-    await this.info.load2(this.EBMLSchema.Info);
+    await this.info.load();
     if (!this.info.loaded) return false;
     return true;
   }
 
   async _parseTracks(element) {
     if (!this.tracks) {
-      this.tracks = new Element(element.getData(), this.dataInterface, this);
+      this.tracks = new Tracks(element.getData(), this.dataInterface);
     }
-    await this.tracks.load2(this.EBMLSchema.Tracks);
+    await this.tracks.load();
     if (!this.tracks.loaded) return false;
-    return true;
-  }
-
-  async _parseCues(element) {
-    if (!this.cues) {
-      this.cues = new Element(element.getData(), this.dataInterface, this);
-    }
-    await this.cues.load2(this.EBMLSchema.Cues);
-    if (!this.cues.loaded) return false;
-    return true;
-  }
-
-  async _parseCluster(element) {
-    // if (!this.clusters) {
-      this.clusters = new Element(element.getData(), this.dataInterface, this);
-    // }
-    await this.clusters.load2(this.EBMLSchema.Cluster);
-    if (!this.clusters.loaded) return false;
     return true;
   }
 

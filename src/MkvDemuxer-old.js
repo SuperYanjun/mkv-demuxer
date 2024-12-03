@@ -617,7 +617,7 @@ class MkvDemuxer {
         case MAIN_ELEMENT_ID.CLUSTER:
           const ret = await this._parseCluster();
           if (!ret) {
-            this._handleError(ERROR_TYPE.PARSE_CLUSTERS_ERROR, name);
+            this._handleError(ERROR_TYPE.PARSE_CLUSTER_ERROR, name);
           }
           break;
         default:

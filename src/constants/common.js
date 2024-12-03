@@ -40,13 +40,13 @@ const MAIN_ELEMENT_ID_STRING = {
 };
 
 const DATA_TYPE = {
-  MASTER: "MASTER",
-  UNSIGNED_INT: 'UNSIGNED_INT',
-  SIGNED_INT: 'SIGNED_INT',
-  FLOAT: "FLOAT",
-  DATE: "DATE",
-  UTF8: "UTF8",
-  BINARY: "BINARY",
-  STRING: "STRING",
+  MASTER: "master",
+  UNSIGNED_INT: 'uinteger',
+  SIGNED_INT: 'integer',
+  FLOAT: "float",
+  DATE: "date",
+  UTF8: "utf-8",
+  BINARY: "binary",
+  STRING: "string",
 }
 module.exports = { MAIN_ELEMENT_NAME,MAIN_ELEMENT_ID, MAIN_ELEMENT_ID_STRING,DATA_TYPE };
